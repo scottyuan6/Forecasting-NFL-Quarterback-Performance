@@ -2,7 +2,7 @@
 
 ## Overview
 
-This repository aims to predict how well NFL quarterbacks will play in the second half of the 2023 season. You can find it here: www.abc.com.
+This repository aims to predict how well NFL quarterbacks will play in the second half of the 2023 season. You can find it here: https://github.com/scottyuan6/prediction.git.
 
 ## File Structure
 
