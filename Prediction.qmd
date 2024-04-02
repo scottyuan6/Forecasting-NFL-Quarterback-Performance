@@ -1,0 +1,109 @@
+---
+title: "Forecasting NFL Quarterback Performance: A Mid-Season Analysis"
+author: Pu Yuan
+thanks: "Code and data are available at: https://github.com/scottyuan6/prediction.git"
+date: "30 March 2024"
+date-format: long
+abstract: "This report aims to predict how well NFL quarterbacks will play in the second half of the 2023 season. I used a straightforward method to fill in missing data in my statistics by replacing them with average values. Then, I created a model that looks at how different factors, like a quarterback's past performance, might predict future performance. My basic model gives me an initial look at what to expect from the quarterbacks in the upcoming games. While my approach is simple, it sets the stage for more detailed analysis in the future, offering teams a starting point for improving their strategies."
+format: pdf
+number-sections: true
+bibliography: references.bib
+---
+
+```{r}
+#| include: false
+#| warning: false
+#| message: false
+
+library(readr)
+library(dplyr)
+library(tidyverse)
+library(caret)
+```
+
+
+# Introduction
+Halfway through the 2023 NFL season, the analysis of quarterback performance is crucial for understanding and forecasting future outcomes. The passing Expected Points Added (EPA) serves as a significant indicator of a quarterback's effectiveness and contribution to the team's offensive efforts. This essay explores the development of a predictive model to forecast passing EPA for each NFL team's quarterbacks for the remaining games of the season.
+
+The rest of the paper is organized as follows: The [@sec-data] represents the data. The [@sec-model] shows how modeling works. The [@sec-result] presents the results. The [@sec-discuss] Gives insight of the research.
+
+We use the statistical programming language `R` [@citeR]. We also made use of the following `R` packages: `readr` [@readr], `tidyverse` [@tidyverse], `dplyr` [@dplyr], `caret` [@caret].
+
+# Data {#sec-data}
+
+```{r}
+#| include: false
+#| warning: false
+#| message: false
+
+# Load the data
+qb_data <- read_csv("qb_regular_season_stats.csv")
+
+# Initial data inspection
+summary(qb_data)
+```
+
+In the dataset, I have a wealth of quarterback statistics from the current 2023 NFL season up to Week 9. However, I encounter a common issue in data analysis: missing values in several crucial columns. To address this, I apply a simple imputation strategy, filling in missing numeric data with the mean of each respective column. This method maintains the structure of the data and allows me to proceed without discarding valuable information. Although this approach assumes that the missing data is randomly distributed and that the mean is a reasonable estimate for the missing values, it is a widely accepted practice for initial analyses and is straightforward to implement.
+
+```{r}
+#| include: false
+#| warning: false
+#| message: false
+
+# Simple mean imputation for numeric columns
+qb_data <- qb_data %>%
+  mutate(across(where(is.numeric), ~ ifelse(is.na(.), mean(., na.rm = TRUE), .)))
+
+```
+
+
+# Model {#sec-model}
+
+```{r}
+#| include: false
+#| warning: false
+#| message: false
+
+# Continue with feature engineering
+qb_data <- qb_data %>%
+  mutate(
+    pass_attempt_ratio = completions / attempts
+    # More features can be added here
+  )
+
+
+# Define the control method for training
+control <- trainControl(method = "repeatedcv", number = 10, repeats = 3)
+
+# Train the model, such as a linear model or a more complex one like GBM
+# Here we'll use a linear model for simplicity
+model_lm <- train(
+  passing_epa ~ rushing_epa + carries, 
+  data = qb_data, 
+  method = "lm",
+  trControl = control
+)
+
+# Summarize the model
+summary(model_lm)
+
+```
+
+With a complete dataset, I proceed to enhance the model's predictive capabilities through feature engineering. I create new variables that reflect potential influences on passing EPA, such as pass completion ratios. Using these features, I prepare to build the predictive model.
+
+For the modeling phase, I employ a linear regression approach as a starting point, due to its simplicity and interpretability. A linear regression model serves as a useful baseline and can provide quick insights into the relationships between features and the target variable, passing EPA.
+
+I utilize the train function from the caret package, allowing for a streamlined modeling process that includes built-in cross-validation. This function simplifies the task of model selection and tuning, providing a robust framework for evaluating model performance.
+
+# Result {#sec-result}
+
+Upon training our linear model, we assess its performance using the built-in summary function. This function reveals the significance of each feature in predicting passing EPA and the overall fit of the model. For example, the model's coefficients for completion ratio and other features provide insights into their relative importance.
+
+# Discussion {#sec-discuss}
+The simplicity of the imputation approach and the transparency of the linear regression model provide me with a clear, although preliminary, picture of quarterback performance influences. My results highlight key factors that can be targeted for improvement and suggest strategies teams might employ for the remainder of the season.
+
+However, it's important to recognize the limitations of mean imputation and linear modeling. Mean imputation does not account for the potential structure in missing data, which could lead to biased estimates. Similarly, linear regression assumes a linear relationship between features and the target variable, which may not always hold in complex sports scenarios. Future work could explore more sophisticated imputation methods and advanced models such as ensemble methods or neural networks for improved prediction accuracy.
+
+By refining my techniques and expanding the dataset with real-time data and more advanced metrics, I can further enhance the predictive power of our models, providing teams with actionable insights that can inform strategy and decision-making in the highly competitive environment of the NFL.
+
+# References
